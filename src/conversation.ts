@@ -328,23 +328,29 @@ export async function knnConversations(
 
   recorder.record(processor);
 
-  const { output: queryEmbedding, rephrased } = await run();
+  try {
+    const { output: queryEmbedding, rephrased } = await run();
 
-  const recording = recorder.serialize();
-  await writeFile('embed-query-recording.rivet-recording', recording);
+    console.log(`Rephrased query as "${Rivet.coerceType(rephrased, 'string')}"`);
 
-  console.log(`Rephrased query as "${Rivet.coerceType(rephrased, 'string')}"`);
+    const results = await knnConversationEmbeddings(
+      db,
+      new Float32Array(Rivet.coerceType(queryEmbedding, 'vector')),
+      k,
+    );
 
-  const results = await knnConversationEmbeddings(db, new Float32Array(Rivet.coerceType(queryEmbedding, 'vector')), k);
+    const conversations: (ConversationDetails & { distance: number })[] = await Promise.all(
+      results.map(async ({ conversationId, distance }) => {
+        const details = await getConversationDetails(db, conversationId);
+        return { ...details, distance };
+      }),
+    );
 
-  const conversations: (ConversationDetails & { distance: number })[] = await Promise.all(
-    results.map(async ({ conversationId, distance }) => {
-      const details = await getConversationDetails(db, conversationId);
-      return { ...details, distance };
-    }),
-  );
-
-  return conversations.filter((c) => c.messages.length > 0);
+    return conversations.filter((c) => c.messages.length > 0);
+  } finally {
+    const recording = recorder.serialize();
+    await writeFile('embed-query-recording.rivet-recording', recording);
+  }
 }
 
 export async function helpfulMessageFromPastConversations(

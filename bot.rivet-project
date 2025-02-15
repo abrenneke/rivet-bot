@@ -5,6 +5,61 @@ data:
       testSuites: []
       version: 1
   graphs:
+    7iHnWEmcH0QvWCxWPIdxa:
+      metadata:
+        description: ""
+        id: 7iHnWEmcH0QvWCxWPIdxa
+        name: "Function Call: replyToUser"
+      nodes:
+        '[BI8U0sdUOiTsJJbFXXghs]:graphInput "Graph Input"':
+          data:
+            dataType: boolean
+            id: shouldReply
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Object" MDlYAGqqL4vQE94CVZs5s/shouldReply
+          visualData: 484/767/330/6//
+        '[MDlYAGqqL4vQE94CVZs5s]:object "Object"':
+          data:
+            jsonTemplate: |-
+              {
+                "reply": "{{reply}}",
+                "helpfulness": {{helpfulness}},
+                "shouldReply": {{shouldReply}},
+                "internalThoughts": "{{internalThoughts}}"
+              }
+          outgoingConnections:
+            - output->"Graph Output" wJ5GxvvY-8mzod4FPVVOu/value
+          visualData: 981/568/230/15//
+        '[VJfRwAJ9RW7TNzVOvR-Cr]:graphInput "Graph Input"':
+          data:
+            dataType: string
+            id: reply
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Object" MDlYAGqqL4vQE94CVZs5s/reply
+          visualData: 484/367/330/6//
+        '[hyaya4jtQdZ-MeDQWhuNq]:graphInput "Graph Input"':
+          data:
+            dataType: number
+            id: helpfulness
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Object" MDlYAGqqL4vQE94CVZs5s/helpfulness
+          visualData: 484/567/330/6//
+        '[poMHE7ObF-MnXO9QbZhas]:graphInput "Graph Input"':
+          data:
+            dataType: string
+            id: internalThoughts
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Object" MDlYAGqqL4vQE94CVZs5s/internalThoughts
+          visualData: 484/967/330/6//
+        '[wJ5GxvvY-8mzod4FPVVOu]:graphOutput "Graph Output"':
+          data:
+            dataType: string
+            id: output
+          visualData: 1286/621/330/16//
     DIQ-F1DT6fPn3RQzAUtce:
       metadata:
         description: ""
@@ -491,11 +546,98 @@ data:
         id: TmT0Ru-qIpo5jyAsvrzFq
         name: Helpful Message From Past Conversations
       nodes:
+        '[2cxPbMPSoHsOBttxbQfEF]:toTree "To Tree"':
+          data:
+            childrenProperty: children
+            format: "{{path}}"
+            useSortAlphabetically: true
+          outgoingConnections:
+            - tree->"Text" FA7RjrEMsb2Sqbw1_sgbE/file_tree
+          visualData: 574.131915540522/247.29386857014327/330/46//
         '[3GdlHogl2PM56pjMg6CEx]:graphOutput "Graph Output"':
           data:
             dataType: string
             id: internalThoughts
-          visualData: 4141.898342151124/541.4488434797313/330/34//
+          visualData: 8458.636097302091/-217.9433857681133/330/79//
+        '[6b2YD8MwlO8DEljH0iDF6]:delegateFunctionCall "Delegate Function Call"':
+          data:
+            handlers:
+              - key: readRivetFile
+                value: qjZ8pqtpef9Y0qtsiVzum
+          isSplitRun: true
+          outgoingConnections:
+            - message->"Assemble Prompt" rOL6VbCiarjjnfrSnJ2Si/message2
+          visualData: 4468.920324694919/679.7490583306187/442.9055576925157/76//
+        '[AD5oG59KEgJVykz_KHGG4]:match "Match"':
+          data:
+            cases:
+              - replyToUser
+          outgoingConnections:
+            - case1->"Coalesce" d0mVbF4PrtGDYaT70HrdJ/input1
+            - unmatched->"Delegate Function Call"
+              6b2YD8MwlO8DEljH0iDF6/function-call
+          visualData: 3946.5990179148903/278.68024734227964/280/70//
+        '[BuZ9gxK8bT5QbnTEQFx_x]:extractObjectPath "Extract Object Path"':
+          data:
+            path: $.children[0].children[0].children[0].children[0].children[0]
+            usePathInput: false
+          outgoingConnections:
+            - match->"To Tree" 2cxPbMPSoHsOBttxbQfEF/objects
+          visualData: 65.88638026639983/277.91378561546776/280/61//
+        '[CUY743m5jVWBw7recCWMT]:gptFunction "GPT Function"':
+          data:
+            description: >-
+              Ends your pondering and replies to the user. Or ends your
+              pondering and does not reply to the user, because you have nothing
+              useful to say.
+
+
+              ## Internal Thoughts
+
+
+              In your internal thoughts, talk about whether the message is part of a conversation, whether you should butt-in, whether this is a brand new message or question unrelated, etc. You are most helpful to brand new messages not part of a conversation.
+
+
+              ## Helpfulness Score
+
+
+              With a score from 0 to 10, rate how helpful of a response you can give. A 10 means that the response you give is extremely helpful and can likely answer the user's question, if they have one. A 0 means you have no idea and can provide nothing to the conversation.
+
+
+              Even if your reply is negative, it may be very helpful! For example, "Rivet does not support that" is a helpful reply.
+            name: replyToUser
+            schema: >-
+              
+              {
+                "type": "object",
+                "properties": {
+                  "internalThoughts": {
+                    "type": "string",
+                    "description": "These thoughts are to yourself"
+                  },
+                  "shouldMessage": {
+                    "type": "boolean",
+                    "description": "Indicates whether a message should be sent"
+                  },
+                  "reply": {
+                    "type": "string",
+                    "description": "This is your text reply to the user"
+                  },
+                  "helpfulness": {
+                    "type": "integer",
+                    "description": "A rating of helpfulness",
+                    "minimum": 1,
+                    "maximum": 10
+                  }
+                },
+                "required": ["internalThoughts", "shouldMessage", "reply", "helpfulness"],
+                "additionalProperties": false
+              }
+            text: ""
+          outgoingConnections:
+            - function->"Array" grjGx_dLGo-EbghJwxXHr/input1
+            - function->"Array" poJFOQ2N1oIlq8-1C0xFN/input1
+          visualData: 2132.5021418336246/1144.4343642855567/280/65//
         '[CjCP5tAVoFnV1_UgLHGsp]:graphInput "Graph Input"':
           data:
             dataType: object[]
@@ -503,7 +645,7 @@ data:
             useDefaultValueInput: true
           outgoingConnections:
             - data->"Extract Object Path" _N9pD3_tIORVGCL7A0omw/object
-          visualData: 230/543/330/1//
+          visualData: -222.58450545316754/609.0853481413917/330/42//
         '[E8uylVNG2RiTJoIY0hGHB]:object "Object"':
           data:
             jsonTemplate: "[{\"messages\":[{\"id\":\"1154222655872970862\",\"content\":\"I
@@ -963,9 +1105,10 @@ data:
               \"}],\"distance\":1.2397295236587524}]"
           outgoingConnections:
             - output->"Graph Input" CjCP5tAVoFnV1_UgLHGsp/default
-          visualData: -99/343/230/4//
+          visualData: -563.600023297057/419.0982796779662/230/43//
         '[FA7RjrEMsb2Sqbw1_sgbE]:text "Text"':
           data:
+            schema: ""
             text: >-
               The following is a list of conversations that may be relevant to
               your answer:
@@ -976,6 +1119,16 @@ data:
               {{conversations}}
 
               </conversations>
+
+
+              The following is a tree of every file in the Rivet repository. It may be helpful for running commands to read file paths:
+
+
+              <file_tree>
+
+              {{file_tree}}
+
+              </file_tree>
 
 
 
@@ -993,21 +1146,6 @@ data:
 
 
               Can you answer that user's question based on the information you have been provided about Rivet?
-
-
-              ## Internal Thoughts
-
-
-              In your internal thoughts, talk about whether the message is part of a conversation, whether you should butt-in, whether this is a brand new message or question unrelated, etc. You are most helpful to brand new messages not part of a conversation.
-
-
-              ## Helpfulness Score
-
-
-              With a score from 0 to 10, rate how helpful of a response you can give. A 10 means that the response you give is extremely helpful and can likely answer the user's question, if they have one. A 0 means you have no idea and can provide nothing to the conversation.
-
-
-              Even if your reply is negative, it may be very helpful! For example, "Rivet does not support that" is a helpful reply.
 
 
               ## Continuing conversations
@@ -1050,28 +1188,31 @@ data:
               This helps people build up trust that you are referencing things that actually happened.
 
 
+              ## Linking Files
+
+
+              You can link files in the Rivet repository using the following template:
+
+
+              https://github.com/Ironclad/rivet/tree/main/:file_path
+
+
+              For example:
+
+
+              https://github.com/Ironclad/rivet/tree/main/packages/core/src/model/nodes/ChatNode.ts
+
+
               {{mention}}
 
 
-              ## Replies
+              ## Functions
 
 
-              Reply with JSON of the following format:
+              You are provided with a series of functions to use to answer the user's question. You may call as many functions as you wish in order to better answer the user's question.
 
 
-              ```json
-
-              {
-                  "internalThoughts": "These thoughts are to yourself",
-                  "shouldMessage": true or false,
-                  "reply": "This is your text reply to the user",
-                  "helpfulness" 5
-              }
-
-              ```
-
-
-              You must always reply with both a reply, and a helpfulness score.
+              For example, if the user is asking a question that can be answered by reading the source code of Rivet, you can use the `readRivetFile` function to see the contents of the source code file.
           outgoingConnections:
             - output->"Chat" bkk_WB9asbFyLV-4gg7hw/prompt
           visualData: 2207.0659660577403/726.6347887366494/330/17//
@@ -1094,6 +1235,18 @@ data:
           outgoingConnections:
             - output->"If/Else" kH12z7VW3csAj_4D12a-A/true
           visualData: 1144.0505400375082/1240.1049096762858/330/38//
+        '[IAKoRoISKFkoLMI0AK52c]:text "Text"':
+          data:
+            text: "{{input}}"
+          outgoingConnections:
+            - output->"Match" AD5oG59KEgJVykz_KHGG4/input
+          visualData: 3422.3063417329663/402.5383795595691/330/71//
+        '[IY1sv66H2GzKJZ6NsdxNf]:text "Text"':
+          data:
+            text: "{{input}}"
+          outgoingConnections:
+            - output->"Extract JSON" qir_Y5dPVH1fbXTB_H2TB/input
+          visualData: 7068.595613287889/38.63153732670161/330/79//
         '[NyN0tAEAs2ZbLt-0aJRGH]:object "Object"':
           data:
             jsonTemplate: "[{\"id\":\"1339428384970903663\",\"content\":\"ohh\",\"timestamp\
@@ -1151,7 +1304,7 @@ data:
               \"channelId\":\"1149382713904746597\"}]"
           outgoingConnections:
             - output->"Graph Input" v37SmR9BGDJgDPq1b8qC-/default
-          visualData: -139.0235092425661/1117.4492835970286/230/25//
+          visualData: -30.161193976750667/1016.1468513357837/230/41//
         '[PN0B3V9xSaezm6wSE-1wj]:text "Text"':
           data:
             text: >-
@@ -1187,20 +1340,46 @@ data:
           data:
             dataType: number
             id: helpfulness
-          visualData: 4145.50586056522/967.1360163430364/330/33//
+          visualData: 8462.243615716186/207.74378709519183/330/79//
         '[Uss0ThurAIE3ZOzkt3XHA]:join "Join"':
           data:
             flatten: true
             joinString: "\n\n"
           outgoingConnections:
             - output->"Text" FA7RjrEMsb2Sqbw1_sgbE/conversations
-          visualData: 1882.3893087891174/553.4739048600507/180/9//
+          visualData: 1429.8048033359498/619.5592530014424/180/42//
+        '[WGYV__c0cf7fKhAEXb5Xi]:delegateFunctionCall "Delegate Function Call"':
+          data:
+            handlers:
+              - key: replyToUser
+                value: 7iHnWEmcH0QvWCxWPIdxa
+          isSplitRun: true
+          outgoingConnections:
+            - output->"Text" IY1sv66H2GzKJZ6NsdxNf/input
+          visualData: 6448.738053579676/139.18154477869496/442.9055576925157/80//
         '[XLZkevyQOr_C25B04D0-T]:text "Text"':
           data:
             text: ""
           outgoingConnections:
             - output->"If/Else" kH12z7VW3csAj_4D12a-A/false
           visualData: 1174.6314355238658/1536.733058294768/330/39//
+        '[YndaLL2AGMve9B3tIXh_g]:readDirectory "Read Directory"':
+          data:
+            filterGlobs: []
+            ignores: []
+            includeDirectories: false
+            path: /usr/local/repos/rivet/packages/core/src
+            recursive: true
+            relative: false
+            useFilterGlobsInput: false
+            useIgnoresInput: false
+            useIncludeDirectoriesInput: false
+            usePathInput: false
+            useRecursiveInput: false
+            useRelativeInput: false
+          outgoingConnections:
+            - tree->"Extract Object Path" BuZ9gxK8bT5QbnTEQFx_x/object
+          visualData: -302.98967922158306/135.020396693047/230/60//
         '[_Eurz84lHU5ynlP_-e4rO]:subGraph "Subgraph"':
           data:
             graphId: DYKDBueiTSnn9xhpjq6Cb
@@ -1216,7 +1395,7 @@ data:
           isSplitRun: true
           outgoingConnections:
             - all_matches->"Subgraph" d8yzrLcYgx-yvY9ESKdXb/messages
-          visualData: 622/550/464/2//
+          visualData: 169.41549454683246/616.0853481413917/464/42//
         '[bIygMpK7e41Z6ZQ3N0gmF]:match "Match"':
           data:
             cases:
@@ -1229,12 +1408,12 @@ data:
           data:
             additionalParameters: []
             cache: false
-            enableFunctionUse: false
+            enableFunctionUse: true
             headers: []
             maxTokens: 1024
             modalitiesIncludeAudio: false
             modalitiesIncludeText: false
-            model: gpt-4o
+            model: gpt-4o-mini
             outputUsage: false
             parallelFunctionCalling: true
             reasoningEffort: medium
@@ -1242,6 +1421,7 @@ data:
             stop: ""
             temperature: 0.2
             text: ""
+            toolChoice: auto
             top_p: 1
             useAdditionalParametersInput: false
             useAsGraphPartialOutput: true
@@ -1260,8 +1440,15 @@ data:
             useUseTopPInput: false
             useUserInput: false
           outgoingConnections:
-            - response->"Extract JSON" qir_Y5dPVH1fbXTB_H2TB/input
+            - all-messages->"Assemble Prompt" rOL6VbCiarjjnfrSnJ2Si/message1
+            - function-calls->"Match" AD5oG59KEgJVykz_KHGG4/value
+            - function-calls->"To JSON" kpXVr9ARkZW6o-nPot7GZ/data
           visualData: 2891.2919585979116/698.9771475619148/230/14//
+        '[d0mVbF4PrtGDYaT70HrdJ]:coalesce "Coalesce"':
+          outgoingConnections:
+            - output->"Delegate Function Call"
+              WGYV__c0cf7fKhAEXb5Xi/function-call
+          visualData: 6026.430088103376/605.969867107758/180/null//
         '[d8yzrLcYgx-yvY9ESKdXb]:subGraph "Subgraph"':
           data:
             graphId: DYKDBueiTSnn9xhpjq6Cb
@@ -1271,13 +1458,27 @@ data:
           outgoingConnections:
             - output->"Text" lFD3AerRHkh_A1uXf37D_/conversation
           splitRunMax: 1000
-          visualData: 1136.8355032093175/564.296460102338/330/7//
+          visualData: 684.2509977561499/630.3818082437297/330/42//
+        '[grjGx_dLGo-EbghJwxXHr]:array "Array"':
+          data:
+            flatten: true
+            flattenDeep: false
+          outgoingConnections:
+            - output->"Chat" stve7WsObo-_M_-NcVgQw/functions
+          visualData: 2775.654076996353/1562.507498348418/230/null//
         '[kH12z7VW3csAj_4D12a-A]:ifElse "If/Else"':
           data:
             unconnectedControlFlowExcluded: true
           outgoingConnections:
             - output->"Text" FA7RjrEMsb2Sqbw1_sgbE/mention
           visualData: 1661.1281793912403/1080.1715933180385/205/null//
+        '[kpXVr9ARkZW6o-nPot7GZ]:toJson "To JSON"':
+          data:
+            indented: false
+          isSplitRun: true
+          outgoingConnections:
+            - json->"Text" IAKoRoISKFkoLMI0AK52c/input
+          visualData: 3175.7925834364196/398.9308611454733/205/69//
         '[lFD3AerRHkh_A1uXf37D_]:text "Text"':
           data:
             text: |-
@@ -1287,12 +1488,12 @@ data:
           isSplitRun: true
           outgoingConnections:
             - output->"Join" Uss0ThurAIE3ZOzkt3XHA/input1
-          visualData: 1508.4098998611853/541.4488434797313/330/8//
+          visualData: 1055.8253944080177/607.534191621123/330/42//
         '[leQ7noO3cvDfUMhsUmKJ9]:graphOutput "Graph Output"':
           data:
             dataType: boolean
             id: shouldReply
-          visualData: 4141.898342151124/1153.5244677379865/330/35//
+          visualData: 8458.636097302091/394.1322384901419/330/79//
         '[lqKtY94zAp7BCpPWng9fj]:text "Text"':
           data:
             text: >-
@@ -1332,9 +1533,10 @@ data:
               ## Replies
 
 
-              You always reply with JSON so that the system can parse it correctly.
+              You always reply by calling the functions you have been provided, with valid JSON input.
           outgoingConnections:
             - output->"Chat" bkk_WB9asbFyLV-4gg7hw/systemPrompt
+            - output->"Chat" stve7WsObo-_M_-NcVgQw/systemPrompt
           visualData: 2489.6549084952453/269.68245628451376/330/21//
         '[nYZj0Kq7IrQgJ6s5Vd1qu]:destructure "Destructure"':
           data:
@@ -1342,17 +1544,64 @@ data:
               - $.internalThoughts
               - $.reply
               - $.helpfulness
-              - $.shouldMessage
+              - $.shouldReply
           outgoingConnections:
             - match_0->"Graph Output" 3GdlHogl2PM56pjMg6CEx/value
             - match_1->"Graph Output" zp5NY2aly11KTUH9xjTW3/value
             - match_2->"Graph Output" RQpZj3ZxF2I51mxp99XaN/value
             - match_3->"Graph Output" leQ7noO3cvDfUMhsUmKJ9/value
-          visualData: 3564.6953958957956/760.3049606015435/280/30//
+          visualData: 7881.433151046764/0.9127313536989039/280/79//
+        '[poJFOQ2N1oIlq8-1C0xFN]:array "Array"':
+          data:
+            flatten: true
+            flattenDeep: false
+          outgoingConnections:
+            - output->"Chat" bkk_WB9asbFyLV-4gg7hw/functions
+          visualData: 2557.4450595506873/1183.4378589362645/230/47//
         '[qir_Y5dPVH1fbXTB_H2TB]:extractJson "Extract JSON"':
           outgoingConnections:
             - output->"Destructure" nYZj0Kq7IrQgJ6s5Vd1qu/object
-          visualData: 3185.9059624157358/761.5074667395754/280/27//
+          visualData: 7502.643717566703/2.1152374917308396/280/79//
+        '[rOL6VbCiarjjnfrSnJ2Si]:assemblePrompt "Assemble Prompt"':
+          outgoingConnections:
+            - prompt->"Chat" stve7WsObo-_M_-NcVgQw/prompt
+          visualData: 5148.046095561043/865.3629704802104/280/78//
+        '[stve7WsObo-_M_-NcVgQw]:chat "Chat"':
+          data:
+            additionalParameters: []
+            cache: false
+            enableFunctionUse: true
+            headers: []
+            maxTokens: 1024
+            modalitiesIncludeAudio: false
+            modalitiesIncludeText: false
+            model: gpt-4o-mini
+            outputUsage: false
+            parallelFunctionCalling: true
+            reasoningEffort: medium
+            stop: ""
+            temperature: 0.2
+            toolChoice: auto
+            top_p: 1
+            useAdditionalParametersInput: false
+            useAsGraphPartialOutput: true
+            useFrequencyPenaltyInput: false
+            useMaxTokensInput: false
+            useModelInput: false
+            usePredictedOutput: false
+            usePresencePenaltyInput: false
+            useReasoningEffortInput: false
+            useServerTokenCalculation: true
+            useStop: false
+            useStopInput: false
+            useTemperatureInput: false
+            useTopP: false
+            useTopPInput: false
+            useUseTopPInput: false
+            useUserInput: false
+          outgoingConnections:
+            - function-calls->"Coalesce" d0mVbF4PrtGDYaT70HrdJ/input2
+          visualData: 5604.931774841902/751.1415506599955/230/77//
         '[v37SmR9BGDJgDPq1b8qC-]:graphInput "Graph Input"':
           data:
             dataType: object[]
@@ -1363,11 +1612,37 @@ data:
             - data->"Pop" QRNxeUUxBL_dyIVOfQZVy/array
             - data->"Subgraph" _Eurz84lHU5ynlP_-e4rO/messages
           visualData: 271.0310838263239/1272.956556489847/330/22//
+        '[yNvvuc19rl-I6kkvVIltc]:gptFunction "GPT Function"':
+          data:
+            description: >-
+              Reads the contents of the specified file in Rivet. This is useful
+              if questions can be answered by reading the source code of Rivet.
+              The path should be relative, and start with `packages`.
+
+
+              If you are in doubt, read one or more files in Rivet so that you understand Rivet better before replying to the user! Reading files is quick and easy. You can read multiple files by calling this function more than once at a time.
+            name: readRivetFile
+            schema: |-
+              
+              {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "The file path of the file to read"
+                  }
+                },
+                "required": ["path"],
+                "additionalProperties": false
+              }
+          outgoingConnections:
+            - function->"Array" poJFOQ2N1oIlq8-1C0xFN/input2
+          visualData: 2149.2372530793277/1847.8856542695976/280/64//
         '[zp5NY2aly11KTUH9xjTW3]:graphOutput "Graph Output"':
           data:
             dataType: string
             id: reply
-          visualData: 4135.885811460966/742.2673685310646/330/36//
+          visualData: 8452.623566611932/-17.12486071678002/330/79//
     kMImnA_JwET5paPQ7hHN4:
       metadata:
         description: ""
@@ -1431,7 +1706,7 @@ data:
             maxTokens: 1024
             modalitiesIncludeAudio: false
             modalitiesIncludeText: false
-            model: gpt-4o
+            model: gpt-4o-mini
             outputUsage: false
             parallelFunctionCalling: true
             reasoningEffort: medium
@@ -1751,6 +2026,40 @@ data:
           outgoingConnections:
             - output1->"Graph Output" 5SHWcScJF0M-gw0c3_UgZ/value
           visualData: 2452.632408467435/609.3910897187651/280/56//
+    qjZ8pqtpef9Y0qtsiVzum:
+      metadata:
+        description: ""
+        id: qjZ8pqtpef9Y0qtsiVzum
+        name: "Function Call: readRivetFile"
+      nodes:
+        '[GbjVUI4R_c4MjZXgwLjlX]:graphOutput "Graph Output"':
+          data:
+            dataType: string
+            id: output
+          visualData: 1012/527/330/4//
+        '[HumxEURbglkjqZt7NqqjH]:graphInput "Graph Input"':
+          data:
+            dataType: string
+            id: path
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Text" QzJGuFm_bGGNNjHcNhrjY/path
+          visualData: -261/580/330/8//
+        '[QzJGuFm_bGGNNjHcNhrjY]:text "Text"':
+          data:
+            text: /usr/local/repos/rivet/{{path}}
+          outgoingConnections:
+            - output->"Read File" pmZzqLtqDdWwXDoAUY4aU/path
+          visualData: 182/574/330/6//
+        '[pmZzqLtqDdWwXDoAUY4aU]:readFile "Read File"':
+          data:
+            asBinary: false
+            errorOnMissingFile: false
+            path: ""
+            usePathInput: true
+          outgoingConnections:
+            - content->"Graph Output" GbjVUI4R_c4MjZXgwLjlX/value
+          visualData: 631/536/280/3//
   metadata:
     description: ""
     id: YRz-Gl8z4UnZ6Qe_ILR15

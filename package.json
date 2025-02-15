@@ -7,6 +7,10 @@
     "help-channel": "tsx --no-warnings bin/help-channel.ts",
     "watch": "tsx --no-warnings bin/watch.ts"
   },
+  "resolutions": {
+    "@ironclad/rivet-node": "file:/usr/local/repos/rivet/packages/node",
+    "@ironclad/rivet-core": "file:/usr/local/repos/rivet/packages/core"
+  },
   "dependencies": {
     "@ironclad/rivet-node": "^1.21.0",
     "@slack/web-api": "^7.8.0",
