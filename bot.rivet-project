@@ -5,6 +5,174 @@ data:
       testSuites: []
       version: 1
   graphs:
+    21tNFMHf8r7KaqyGB8lpM:
+      metadata:
+        description: ""
+        id: 21tNFMHf8r7KaqyGB8lpM
+        name: Bot Chat With Functions
+      nodes:
+        '[1cP5r33uBGW2aI0NE8AsN]:gptFunction "GPT Function"':
+          data:
+            description: Ends your pondering and replies to the user. Or ends your pondering
+              and does not reply to the user, because you have nothing useful to
+              say.
+            name: replyToUser
+            schema: >-
+              
+              {
+                "type": "object",
+                "properties": {
+                  "internalThoughts": {
+                    "type": "string",
+                    "description": "In your internal thoughts, talk about whether the message is part of a conversation, whether you should butt-in, whether this is a brand new message or question unrelated, etc. You are most helpful to brand new messages not part of a conversation."
+                  },
+                  "shouldReply": {
+                    "type": "boolean",
+                    "description": "This is an additional check, similar to the helpfulness score. If true, then you think your reply is helpful enough to actually send a message back to the user. Should be true for high helpfulness values."
+                  },
+                  "reply": {
+                    "type": "string",
+                    "description": "This is your text reply to the user"
+                  },
+                  "helpfulness": {
+                    "type": "integer",
+                    "description": "With a score from 0 to 10, rate how helpful of a response you can give. A 10 means that the response you give is extremely helpful and can likely answer the user's question, if they have one. A 0 means you have no idea and can provide nothing to the conversation. Even if your reply is negative, it may be very helpful! For example, \"Rivet does not support that\" is a helpful reply.",
+                    "minimum": 1,
+                    "maximum": 10
+                  }
+                },
+                "required": ["internalThoughts", "shouldMessage", "reply", "helpfulness"],
+                "additionalProperties": false
+              }
+            text: ""
+          outgoingConnections:
+            - function->"Array" LyYa0H4NLTKb4AIvcw0FX/input1
+          visualData: -302.8806012940445/794.9558367085282/608.565978600187/98//
+        '[AMXkVL2a_O15gBlfaiPmW]:graphOutput "Graph Output"':
+          data:
+            dataType: string
+            id: system_prompt
+          visualData: 1329.4833544434055/229.3188327332115/330/101//
+        '[DnETW9vUojcwlmluKdCBv]:match "Match"':
+          data:
+            cases:
+              - replyToUser
+          outgoingConnections:
+            - case1->"Graph Output" ZX1-qo7AdzXaT7gtY8f1v/value
+          visualData: 1315.3465871666695/906.2250586422349/280/115//
+        '[G2NF_L9AZqI0zEEKm79C0]:graphOutput "Graph Output"':
+          data:
+            dataType: string
+            id: messages
+          visualData: 2188.622278515747/591.283920416149/330/108//
+        '[LyYa0H4NLTKb4AIvcw0FX]:array "Array"':
+          data:
+            flatten: true
+            flattenDeep: false
+          outgoingConnections:
+            - output->"Chat" siGNxgvarBhFrm7obsC9m/functions
+          visualData: 377.80181523038027/764.5201296963099/230/98//
+        '[UBR2utiLvy0m3s48J93_W]:graphInput "Graph Input"':
+          data:
+            dataType: string
+            id: system_prompt
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Chat" siGNxgvarBhFrm7obsC9m/systemPrompt
+            - data->"Graph Output" AMXkVL2a_O15gBlfaiPmW/value
+          visualData: 288/245/330/1//
+        '[ZX1-qo7AdzXaT7gtY8f1v]:graphOutput "Graph Output"':
+          data:
+            dataType: string
+            id: reply
+          visualData: 1779.0954278319934/937.1491942444528/330/111//
+        '[h30jWq9xHr0buJsAA-OZd]:graphInput "Graph Input"':
+          data:
+            dataType: chat-message[]
+            id: messages
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Chat" siGNxgvarBhFrm7obsC9m/prompt
+          visualData: 285/409/330/3//
+        '[h9UTlt8Hj46csMfWCmkQY]:assemblePrompt "Assemble Prompt"':
+          outgoingConnections:
+            - prompt->"Graph Output" G2NF_L9AZqI0zEEKm79C0/value
+          visualData: 1782.9960323963467/622.2692586613812/280/106//
+        '[obhiyC5avRMNtZSZi1Fci]:gptFunction "GPT Function"':
+          data:
+            description: >-
+              Reads the contents of the specified file in Rivet. This is useful
+              if questions can be answered by reading the source code of Rivet.
+              The path should be relative, and start with `packages`.
+
+
+              If you are in doubt, read one or more files in Rivet so that you understand Rivet better before replying to the user! Reading files is quick and easy. You can read multiple files by calling this function more than once at a time.
+            name: readRivetFile
+            schema: |-
+              
+              {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "The file path of the file to read"
+                  }
+                },
+                "required": ["path"],
+                "additionalProperties": false
+              }
+          outgoingConnections:
+            - function->"Array" LyYa0H4NLTKb4AIvcw0FX/input2
+          visualData: -12.736877991058464/995.7190243459557/280/98//
+        '[siGNxgvarBhFrm7obsC9m]:chat "Chat"':
+          data:
+            additionalParameters: []
+            cache: false
+            enableFunctionUse: true
+            headers: []
+            maxTokens: 1024
+            modalitiesIncludeAudio: false
+            modalitiesIncludeText: false
+            model: gpt-4o-mini
+            outputUsage: false
+            parallelFunctionCalling: true
+            reasoningEffort: medium
+            stop: ""
+            temperature: 0.5
+            top_p: 1
+            useAdditionalParametersInput: false
+            useAsGraphPartialOutput: true
+            useFrequencyPenaltyInput: false
+            useMaxTokensInput: false
+            useModelInput: false
+            usePredictedOutput: false
+            usePresencePenaltyInput: false
+            useReasoningEffortInput: false
+            useServerTokenCalculation: true
+            useStop: false
+            useStopInput: false
+            useTemperatureInput: false
+            useTopP: false
+            useTopPInput: false
+            useUseTopPInput: false
+            useUserInput: false
+          outgoingConnections:
+            - all-messages->"Assemble Prompt" h9UTlt8Hj46csMfWCmkQY/message1
+            - function-calls->"Delegate Function Call"
+              ssH6ixs4ORCDn5G2xQgEk/function-call
+            - function-calls->"Match" DnETW9vUojcwlmluKdCBv/input
+          visualData: 810.1831510686153/390.5897125984655/230/99//
+        '[ssH6ixs4ORCDn5G2xQgEk]:delegateFunctionCall "Delegate Function Call"':
+          data:
+            handlers:
+              - key: replyToUser
+                value: 7iHnWEmcH0QvWCxWPIdxa
+              - key: readRivetFile
+                value: qjZ8pqtpef9Y0qtsiVzum
+          isSplitRun: true
+          outgoingConnections:
+            - message->"Assemble Prompt" h9UTlt8Hj46csMfWCmkQY/message2
+          visualData: 1297.089591732481/450.44147384691263/355/104//
     7iHnWEmcH0QvWCxWPIdxa:
       metadata:
         description: ""
@@ -540,12 +708,169 @@ data:
             dataType: string
             id: output
           visualData: 2174.8451515770466/446.52770868991297/330/19//
+    DkH1kj-RGIdFy4U0pJsqE:
+      metadata:
+        description: ""
+        id: DkH1kj-RGIdFy4U0pJsqE
+        name: Embed Doc
+      nodes:
+        '[6OxQMGRJGTUwc9mPdhhz9]:readFile "Read File"':
+          data:
+            asBinary: false
+            errorOnMissingFile: false
+            path: /usr/local/repos/rivet/packages/docs/docs/node-reference/to-json.mdx
+            usePathInput: true
+          outgoingConnections:
+            - content->"Graph Input" pWTJflzUKXjAiSCp0Jyse/default
+          visualData: -166/743/280/9//
+        '[7tuM3Ck2BsszYN-pDryeA]:graphOutput "Graph Output"':
+          data:
+            dataType: vector
+            id: output
+          visualData: 2665/511/330/16//
+        '[E4A4mbLm6emEmKnjGaJWY]:subGraph "Subgraph"':
+          data:
+            graphId: wGYYOpcfX0z14zdkXeRgO
+            useAsGraphPartialOutput: false
+            useErrorOutput: false
+          outgoingConnections:
+            - output->"Text" HyLUDG5MiMlnqq1bO712k/rivet
+          visualData: 506/302/330/5//
+        '[HyLUDG5MiMlnqq1bO712k]:text "Text"':
+          data:
+            text: >-
+              {{rivet}}
+
+
+              The following is one of the documentation files for Rivet, at "{{path}}".
+
+
+              <docs>
+
+              {{docs}}
+
+              </docs>
+
+
+              ## Instructions
+
+
+              1. Summarise the purpose of this documentation file
+
+              2. Include a bunch of questions someone might have, that could be answered by this document. At least 5 questions. Be creative
+          outgoingConnections:
+            - output->"Chat" ptlMsdWQLsfW0bZfvTQwR/prompt
+          visualData: 1033/453/330/7//
+        '[NuZFS6dM5mp3PhJ8pK8jG]:text "Text"':
+          data:
+            text: |-
+              // {{file_path}}
+
+              {{doc}}
+
+              {{additional_info}}
+          outgoingConnections:
+            - output->"Get Embedding" o5W4q-RxZ9P0aGCIC-QG2/input
+          visualData: 1878/465/330/13//
+        '[f-hvFWYd5YdwnvcVjoDrr]:graphInput "Graph Input"':
+          data:
+            dataType: string
+            defaultValue: node-reference/to-json.mdx
+            id: file_path
+            useDefaultValueInput: false
+          outgoingConnections:
+            - data->"Text" HyLUDG5MiMlnqq1bO712k/path
+            - data->"Text" NuZFS6dM5mp3PhJ8pK8jG/file_path
+          visualData: 381/488/330/10//
+        '[o5W4q-RxZ9P0aGCIC-QG2]:getEmbedding "Get Embedding"':
+          data:
+            integration: openai
+            model: text-embedding-3-small
+            useIntegrationInput: false
+          outgoingConnections:
+            - embedding->"Graph Output" 7tuM3Ck2BsszYN-pDryeA/value
+          visualData: 2287/534/280/14//
+        '[pWTJflzUKXjAiSCp0Jyse]:graphInput "Graph Input"':
+          data:
+            dataType: string
+            id: doc
+            useDefaultValueInput: true
+          outgoingConnections:
+            - data->"Text" HyLUDG5MiMlnqq1bO712k/docs
+            - data->"Text" NuZFS6dM5mp3PhJ8pK8jG/doc
+          visualData: 380/723/330/1//
+        '[ptlMsdWQLsfW0bZfvTQwR]:chat "Chat"':
+          data:
+            additionalParameters: []
+            cache: false
+            enableFunctionUse: false
+            maxTokens: 1024
+            modalitiesIncludeAudio: false
+            modalitiesIncludeText: false
+            model: gpt-4o-mini
+            outputUsage: false
+            parallelFunctionCalling: true
+            reasoningEffort: medium
+            stop: ""
+            temperature: 0.5
+            top_p: 1
+            useAdditionalParametersInput: false
+            useAsGraphPartialOutput: true
+            useFrequencyPenaltyInput: false
+            useMaxTokensInput: false
+            useModelInput: false
+            usePredictedOutput: false
+            usePresencePenaltyInput: false
+            useReasoningEffortInput: false
+            useServerTokenCalculation: true
+            useStop: false
+            useStopInput: false
+            useTemperatureInput: false
+            useTopP: false
+            useTopPInput: false
+            useUseTopPInput: false
+            useUserInput: false
+          outgoingConnections:
+            - response->"Text" NuZFS6dM5mp3PhJ8pK8jG/additional_info
+          visualData: 1492/546/230/12//
+    GTbhFpyQfCUP5MwpxW-1C:
+      metadata:
+        description: ""
+        id: GTbhFpyQfCUP5MwpxW-1C
+        name: Test Loop
+      nodes:
+        '[5Pdv5KnqoiXbsknpPp4Ff]:loopUntil "Loop Until"':
+          data:
+            conditionType: allOutputsSet
+            inputData:
+              system_prompt:
+                type: string
+                value: this is a test - get a rivet file using your function calling
+            targetGraph: 21tNFMHf8r7KaqyGB8lpM
+          visualData: 548/327/230/null//
     TmT0Ru-qIpo5jyAsvrzFq:
       metadata:
         description: ""
         id: TmT0Ru-qIpo5jyAsvrzFq
         name: Helpful Message From Past Conversations
       nodes:
+        '[0v6w16xN6fWwS-xTeBzfF]:readDirectory "Read Directory"':
+          data:
+            filterGlobs: []
+            ignores: []
+            includeDirectories: false
+            path: /usr/local/repos/rivet/packages/app/src
+            recursive: true
+            relative: false
+            useFilterGlobsInput: false
+            useIgnoresInput: false
+            useIncludeDirectoriesInput: false
+            usePathInput: false
+            useRecursiveInput: false
+            useRelativeInput: false
+          outgoingConnections:
+            - tree->"Extract Object Path" xXNEjp7q1WLH6ljJMfFqD/object
+          visualData: -280.6181363147807/-668.6599331886559/230/89//
         '[2cxPbMPSoHsOBttxbQfEF]:toTree "To Tree"':
           data:
             childrenProperty: children
@@ -553,91 +878,34 @@ data:
             useSortAlphabetically: true
           outgoingConnections:
             - tree->"Text" FA7RjrEMsb2Sqbw1_sgbE/file_tree
-          visualData: 574.131915540522/247.29386857014327/330/46//
+          visualData: 594.4648159189758/-136.63913269360205/330/89//
         '[3GdlHogl2PM56pjMg6CEx]:graphOutput "Graph Output"':
           data:
             dataType: string
             id: internalThoughts
-          visualData: 8458.636097302091/-217.9433857681133/330/79//
-        '[6b2YD8MwlO8DEljH0iDF6]:delegateFunctionCall "Delegate Function Call"':
+          visualData: 4256.856719966501/465.6507641994735/330/104//
+        '[9ioduwvx6kPQYtJ0Pt2CM]:graphInput "Graph Input"':
           data:
-            handlers:
-              - key: readRivetFile
-                value: qjZ8pqtpef9Y0qtsiVzum
-          isSplitRun: true
+            dataType: object[]
+            id: docs
+            useDefaultValueInput: false
           outgoingConnections:
-            - message->"Assemble Prompt" rOL6VbCiarjjnfrSnJ2Si/message2
-          visualData: 4468.920324694919/679.7490583306187/442.9055576925157/76//
-        '[AD5oG59KEgJVykz_KHGG4]:match "Match"':
-          data:
-            cases:
-              - replyToUser
-          outgoingConnections:
-            - case1->"Coalesce" d0mVbF4PrtGDYaT70HrdJ/input1
-            - unmatched->"Delegate Function Call"
-              6b2YD8MwlO8DEljH0iDF6/function-call
-          visualData: 3946.5990179148903/278.68024734227964/280/70//
+            - data->"Destructure" jXPjc31t5IRQfvTkEMcwf/object
+          visualData: -235.36350494880813/243.59291538331667/330/90//
         '[BuZ9gxK8bT5QbnTEQFx_x]:extractObjectPath "Extract Object Path"':
           data:
             path: $.children[0].children[0].children[0].children[0].children[0]
             usePathInput: false
           outgoingConnections:
             - match->"To Tree" 2cxPbMPSoHsOBttxbQfEF/objects
-          visualData: 65.88638026639983/277.91378561546776/280/61//
-        '[CUY743m5jVWBw7recCWMT]:gptFunction "GPT Function"':
+          visualData: 86.21928064485363/-106.01921564827757/280/89//
+        '[C8KAQEPVqF1MAhC9QWmIZ]:loopUntil "Loop Until"':
           data:
-            description: >-
-              Ends your pondering and replies to the user. Or ends your
-              pondering and does not reply to the user, because you have nothing
-              useful to say.
-
-
-              ## Internal Thoughts
-
-
-              In your internal thoughts, talk about whether the message is part of a conversation, whether you should butt-in, whether this is a brand new message or question unrelated, etc. You are most helpful to brand new messages not part of a conversation.
-
-
-              ## Helpfulness Score
-
-
-              With a score from 0 to 10, rate how helpful of a response you can give. A 10 means that the response you give is extremely helpful and can likely answer the user's question, if they have one. A 0 means you have no idea and can provide nothing to the conversation.
-
-
-              Even if your reply is negative, it may be very helpful! For example, "Rivet does not support that" is a helpful reply.
-            name: replyToUser
-            schema: >-
-              
-              {
-                "type": "object",
-                "properties": {
-                  "internalThoughts": {
-                    "type": "string",
-                    "description": "These thoughts are to yourself"
-                  },
-                  "shouldMessage": {
-                    "type": "boolean",
-                    "description": "Indicates whether a message should be sent"
-                  },
-                  "reply": {
-                    "type": "string",
-                    "description": "This is your text reply to the user"
-                  },
-                  "helpfulness": {
-                    "type": "integer",
-                    "description": "A rating of helpfulness",
-                    "minimum": 1,
-                    "maximum": 10
-                  }
-                },
-                "required": ["internalThoughts", "shouldMessage", "reply", "helpfulness"],
-                "additionalProperties": false
-              }
-            text: ""
+            conditionType: allOutputsSet
+            targetGraph: 21tNFMHf8r7KaqyGB8lpM
           outgoingConnections:
-            - function->"Array" grjGx_dLGo-EbghJwxXHr/input1
-            - function->"Array" poJFOQ2N1oIlq8-1C0xFN/input1
-          visualData: 2132.5021418336246/1144.4343642855567/280/65//
+            - reply->"Extract JSON" qir_Y5dPVH1fbXTB_H2TB/input
+          visualData: 2903.3592733732835/668.7096766709083/230/99//
         '[CjCP5tAVoFnV1_UgLHGsp]:graphInput "Graph Input"':
           data:
             dataType: object[]
@@ -646,6 +914,12 @@ data:
           outgoingConnections:
             - data->"Extract Object Path" _N9pD3_tIORVGCL7A0omw/object
           visualData: -222.58450545316754/609.0853481413917/330/42//
+        '[DvYfWSaMKjEfuOWGs-NLo]:toJson "To JSON"':
+          data:
+            indented: true
+          outgoingConnections:
+            - json->"Text" uxVxycIIdb2BL0ig0dI6G/message_json
+          visualData: 1729.7392250612718/1540.0585578617367/205/null//
         '[E8uylVNG2RiTJoIY0hGHB]:object "Object"':
           data:
             jsonTemplate: "[{\"messages\":[{\"id\":\"1154222655872970862\",\"content\":\"I
@@ -1110,8 +1384,10 @@ data:
           data:
             schema: ""
             text: >-
-              The following is a list of conversations that may be relevant to
-              your answer:
+              ## Useful Info
+
+
+              The following is a list of conversations that may be relevant to your answer:
 
 
               <conversations>
@@ -1128,8 +1404,22 @@ data:
 
               {{file_tree}}
 
+              {{file_tree_app}}
+
               </file_tree>
 
+
+              The following are Rivet documentation files that may be helpful:
+
+
+              <rivet_documentation_files>
+
+              {{docs}}
+
+              </rivet_documentation_files>
+
+
+              ## Last Messages & Instructions
 
 
               The last 10 messages in the Rivet discord are:
@@ -1152,6 +1442,12 @@ data:
 
 
               The message you are analyzing may be part of a conversation two people are having. If so, don't butt in. Let them converse without interrupting them. Return a low helpfulness score.
+
+
+              ## Continuing Conversations with Rivet Bot
+
+
+              If the message you are analyzing is, however, part of a conversation with Rivet Bot, and Rivet Bot is expected to answer next, then you must answer, and return a high helpfulness score.
 
 
               ## Direct Mentions
@@ -1203,6 +1499,12 @@ data:
               https://github.com/Ironclad/rivet/tree/main/packages/core/src/model/nodes/ChatNode.ts
 
 
+              ## Mentioning Andy/Snea
+
+
+              If you need to mention Andy/Snea, you can include `<@110875316037091328>` in your response. This will tag Andy/Snea. Use this when you have an answer you think could help, but also want to double check it with Andy/Snea.
+
+
               {{mention}}
 
 
@@ -1213,8 +1515,11 @@ data:
 
 
               For example, if the user is asking a question that can be answered by reading the source code of Rivet, you can use the `readRivetFile` function to see the contents of the source code file.
+
+
+              {{reminder}}
           outgoingConnections:
-            - output->"Chat" bkk_WB9asbFyLV-4gg7hw/prompt
+            - output->"Loop Until" C8KAQEPVqF1MAhC9QWmIZ/messages
           visualData: 2207.0659660577403/726.6347887366494/330/17//
         '[HVWO5QwRH9wMWLLsuyqdq]:text "Text"':
           data:
@@ -1235,18 +1540,6 @@ data:
           outgoingConnections:
             - output->"If/Else" kH12z7VW3csAj_4D12a-A/true
           visualData: 1144.0505400375082/1240.1049096762858/330/38//
-        '[IAKoRoISKFkoLMI0AK52c]:text "Text"':
-          data:
-            text: "{{input}}"
-          outgoingConnections:
-            - output->"Match" AD5oG59KEgJVykz_KHGG4/input
-          visualData: 3422.3063417329663/402.5383795595691/330/71//
-        '[IY1sv66H2GzKJZ6NsdxNf]:text "Text"':
-          data:
-            text: "{{input}}"
-          outgoingConnections:
-            - output->"Extract JSON" qir_Y5dPVH1fbXTB_H2TB/input
-          visualData: 7068.595613287889/38.63153732670161/330/79//
         '[NyN0tAEAs2ZbLt-0aJRGH]:object "Object"':
           data:
             jsonTemplate: "[{\"id\":\"1339428384970903663\",\"content\":\"ohh\",\"timestamp\
@@ -1335,12 +1628,14 @@ data:
         '[QRNxeUUxBL_dyIVOfQZVy]:pop "Pop"':
           outgoingConnections:
             - lastItem->"Match" bIygMpK7e41Z6ZQ3N0gmF/input
-          visualData: 735.5082845281257/1027.5186092945764/230/40//
+            - lastItem->"Subgraph" hbpdZ85tnn0GN-EKJIidv/messages
+            - lastItem->"To JSON" DvYfWSaMKjEfuOWGs-NLo/data
+          visualData: 702.5142762042707/1632.4087618985855/230/105//
         '[RQpZj3ZxF2I51mxp99XaN]:graphOutput "Graph Output"':
           data:
             dataType: number
             id: helpfulness
-          visualData: 8462.243615716186/207.74378709519183/330/79//
+          visualData: 4260.464238380597/891.3379370627786/330/104//
         '[Uss0ThurAIE3ZOzkt3XHA]:join "Join"':
           data:
             flatten: true
@@ -1348,15 +1643,6 @@ data:
           outgoingConnections:
             - output->"Text" FA7RjrEMsb2Sqbw1_sgbE/conversations
           visualData: 1429.8048033359498/619.5592530014424/180/42//
-        '[WGYV__c0cf7fKhAEXb5Xi]:delegateFunctionCall "Delegate Function Call"':
-          data:
-            handlers:
-              - key: replyToUser
-                value: 7iHnWEmcH0QvWCxWPIdxa
-          isSplitRun: true
-          outgoingConnections:
-            - output->"Text" IY1sv66H2GzKJZ6NsdxNf/input
-          visualData: 6448.738053579676/139.18154477869496/442.9055576925157/80//
         '[XLZkevyQOr_C25B04D0-T]:text "Text"':
           data:
             text: ""
@@ -1379,7 +1665,7 @@ data:
             useRelativeInput: false
           outgoingConnections:
             - tree->"Extract Object Path" BuZ9gxK8bT5QbnTEQFx_x/object
-          visualData: -302.98967922158306/135.020396693047/230/60//
+          visualData: -282.65677884312925/-248.91260457069833/230/89//
         '[_Eurz84lHU5ynlP_-e4rO]:subGraph "Subgraph"':
           data:
             graphId: DYKDBueiTSnn9xhpjq6Cb
@@ -1404,51 +1690,6 @@ data:
           outgoingConnections:
             - case1->"If/Else" kH12z7VW3csAj_4D12a-A/if
           visualData: 1206.5808592151689/1012.83124958825/280/37//
-        '[bkk_WB9asbFyLV-4gg7hw]:chat "Chat"':
-          data:
-            additionalParameters: []
-            cache: false
-            enableFunctionUse: true
-            headers: []
-            maxTokens: 1024
-            modalitiesIncludeAudio: false
-            modalitiesIncludeText: false
-            model: gpt-4o-mini
-            outputUsage: false
-            parallelFunctionCalling: true
-            reasoningEffort: medium
-            responseFormat: json
-            stop: ""
-            temperature: 0.2
-            text: ""
-            toolChoice: auto
-            top_p: 1
-            useAdditionalParametersInput: false
-            useAsGraphPartialOutput: true
-            useFrequencyPenaltyInput: false
-            useMaxTokensInput: false
-            useModelInput: false
-            usePredictedOutput: false
-            usePresencePenaltyInput: false
-            useReasoningEffortInput: false
-            useServerTokenCalculation: true
-            useStop: false
-            useStopInput: false
-            useTemperatureInput: false
-            useTopP: false
-            useTopPInput: false
-            useUseTopPInput: false
-            useUserInput: false
-          outgoingConnections:
-            - all-messages->"Assemble Prompt" rOL6VbCiarjjnfrSnJ2Si/message1
-            - function-calls->"Match" AD5oG59KEgJVykz_KHGG4/value
-            - function-calls->"To JSON" kpXVr9ARkZW6o-nPot7GZ/data
-          visualData: 2891.2919585979116/698.9771475619148/230/14//
-        '[d0mVbF4PrtGDYaT70HrdJ]:coalesce "Coalesce"':
-          outgoingConnections:
-            - output->"Delegate Function Call"
-              WGYV__c0cf7fKhAEXb5Xi/function-call
-          visualData: 6026.430088103376/605.969867107758/180/null//
         '[d8yzrLcYgx-yvY9ESKdXb]:subGraph "Subgraph"':
           data:
             graphId: DYKDBueiTSnn9xhpjq6Cb
@@ -1459,26 +1700,56 @@ data:
             - output->"Text" lFD3AerRHkh_A1uXf37D_/conversation
           splitRunMax: 1000
           visualData: 684.2509977561499/630.3818082437297/330/42//
-        '[grjGx_dLGo-EbghJwxXHr]:array "Array"':
+        '[hXb4cpWGx84tswYM32SWv]:text "Text"':
           data:
-            flatten: true
-            flattenDeep: false
+            text: "{{input}}"
           outgoingConnections:
-            - output->"Chat" stve7WsObo-_M_-NcVgQw/functions
-          visualData: 2775.654076996353/1562.507498348418/230/null//
+            - output->"Text" uxVxycIIdb2BL0ig0dI6G/message
+          visualData: 1506.5883117864873/1785.240830654262/330/107//
+        '[hbpdZ85tnn0GN-EKJIidv]:subGraph "Subgraph"':
+          data:
+            graphId: DYKDBueiTSnn9xhpjq6Cb
+            useAsGraphPartialOutput: false
+            useErrorOutput: false
+          outgoingConnections:
+            - output->"Text" hXb4cpWGx84tswYM32SWv/input
+          visualData: 1119.222711849438/1783.0017231401753/330/null//
+        '[hwM6tjsMf4EGPLhxwsQkS]:toTree "To Tree"':
+          data:
+            childrenProperty: children
+            format: "{{path}}"
+            useSortAlphabetically: true
+          outgoingConnections:
+            - tree->"Text" FA7RjrEMsb2Sqbw1_sgbE/file_tree_app
+          visualData: 591.4068521264529/-477.8987239701406/330/89//
+        '[jXPjc31t5IRQfvTkEMcwf]:destructure "Destructure"':
+          data:
+            paths:
+              - $.fileName
+              - $.body
+          isSplitRun: true
+          outgoingConnections:
+            - match_0->"Text" kwfQpRZSHOCQhZWWXmYEh/doc_path
+            - match_1->"Text" kwfQpRZSHOCQhZWWXmYEh/doc
+          visualData: 161.7260789127602/277.08239835959347/280/93//
         '[kH12z7VW3csAj_4D12a-A]:ifElse "If/Else"':
           data:
             unconnectedControlFlowExcluded: true
           outgoingConnections:
             - output->"Text" FA7RjrEMsb2Sqbw1_sgbE/mention
           visualData: 1661.1281793912403/1080.1715933180385/205/null//
-        '[kpXVr9ARkZW6o-nPot7GZ]:toJson "To JSON"':
+        '[kwfQpRZSHOCQhZWWXmYEh]:text "Text"':
           data:
-            indented: false
+            text: |-
+              <rivet_doc>
+              // {{doc_path}}
+
+              {{doc}}
+              </rivet_doc>
           isSplitRun: true
           outgoingConnections:
-            - json->"Text" IAKoRoISKFkoLMI0AK52c/input
-          visualData: 3175.7925834364196/398.9308611454733/205/69//
+            - output->"Text" FA7RjrEMsb2Sqbw1_sgbE/docs
+          visualData: 527.7182857249285/194.55474388233975/330/96//
         '[lFD3AerRHkh_A1uXf37D_]:text "Text"':
           data:
             text: |-
@@ -1493,7 +1764,7 @@ data:
           data:
             dataType: boolean
             id: shouldReply
-          visualData: 8458.636097302091/394.1322384901419/330/79//
+          visualData: 4256.856719966501/1077.7263884577287/330/104//
         '[lqKtY94zAp7BCpPWng9fj]:text "Text"':
           data:
             text: >-
@@ -1527,61 +1798,155 @@ data:
               Andy (Snea) is the creator of Rivet. What he said should be treated as authoritative when it comes to Rivet. Every other user is just a user of Rivet asking questions or providing input/conversation in discord. If Andy/Snea replies, that should be seen as authoritative statements about Rivet.
 
 
-              If Andy is the last replier, you cannot be helpful.
-
-
               ## Replies
 
 
               You always reply by calling the functions you have been provided, with valid JSON input.
           outgoingConnections:
-            - output->"Chat" bkk_WB9asbFyLV-4gg7hw/systemPrompt
-            - output->"Chat" stve7WsObo-_M_-NcVgQw/systemPrompt
+            - output->"Loop Until" C8KAQEPVqF1MAhC9QWmIZ/system_prompt
           visualData: 2489.6549084952453/269.68245628451376/330/21//
         '[nYZj0Kq7IrQgJ6s5Vd1qu]:destructure "Destructure"':
           data:
             paths:
-              - $.internalThoughts
-              - $.reply
-              - $.helpfulness
-              - $.shouldReply
+              - $.arguments.internalThoughts
+              - $.arguments.reply
+              - $.arguments.helpfulness
+              - $.arguments.shouldReply
           outgoingConnections:
             - match_0->"Graph Output" 3GdlHogl2PM56pjMg6CEx/value
             - match_1->"Graph Output" zp5NY2aly11KTUH9xjTW3/value
             - match_2->"Graph Output" RQpZj3ZxF2I51mxp99XaN/value
             - match_3->"Graph Output" leQ7noO3cvDfUMhsUmKJ9/value
-          visualData: 7881.433151046764/0.9127313536989039/280/79//
-        '[poJFOQ2N1oIlq8-1C0xFN]:array "Array"':
-          data:
-            flatten: true
-            flattenDeep: false
-          outgoingConnections:
-            - output->"Chat" bkk_WB9asbFyLV-4gg7hw/functions
-          visualData: 2557.4450595506873/1183.4378589362645/230/47//
+          visualData: 3679.6537737111735/684.5068813212856/280/104//
         '[qir_Y5dPVH1fbXTB_H2TB]:extractJson "Extract JSON"':
           outgoingConnections:
             - output->"Destructure" nYZj0Kq7IrQgJ6s5Vd1qu/object
-          visualData: 7502.643717566703/2.1152374917308396/280/79//
-        '[rOL6VbCiarjjnfrSnJ2Si]:assemblePrompt "Assemble Prompt"':
+          visualData: 3284.7427693231493/690.053826669398/280/103//
+        '[uxVxycIIdb2BL0ig0dI6G]:text "Text"':
+          data:
+            text: >-
+              ## Reminder
+
+
+              You are replying to this message:
+
+
+              {{message | quote}}
+
+
+              It has following JSON:
+
+
+              ```json
+
+              {{message_json}}
+
+              ```
+
+
+              You may use previous messages for context, but you are analyzing and potentially replying to this message.
           outgoingConnections:
-            - prompt->"Chat" stve7WsObo-_M_-NcVgQw/prompt
-          visualData: 5148.046095561043/865.3629704802104/280/78//
-        '[stve7WsObo-_M_-NcVgQw]:chat "Chat"':
+            - output->"Text" FA7RjrEMsb2Sqbw1_sgbE/reminder
+          visualData: 2079.0399972588425/1476.2439937102577/330/111//
+        '[v37SmR9BGDJgDPq1b8qC-]:graphInput "Graph Input"':
+          data:
+            dataType: object[]
+            defaultValue: ""
+            id: messages
+            useDefaultValueInput: true
+          outgoingConnections:
+            - data->"Pop" QRNxeUUxBL_dyIVOfQZVy/array
+            - data->"Subgraph" _Eurz84lHU5ynlP_-e4rO/messages
+          visualData: 271.0310838263239/1272.956556489847/330/22//
+        '[xXNEjp7q1WLH6ljJMfFqD]:extractObjectPath "Extract Object Path"':
+          data:
+            path: $.children[0].children[0].children[0].children[0].children[0]
+            usePathInput: false
+          outgoingConnections:
+            - match->"To Tree" hwM6tjsMf4EGPLhxwsQkS/objects
+          visualData: 65.83285536136819/-495.18690634100693/280/89//
+        '[zp5NY2aly11KTUH9xjTW3]:graphOutput "Graph Output"':
+          data:
+            dataType: string
+            id: reply
+          visualData: 4250.844189276342/666.4692892508067/330/104//
+    U41G86c3ni0S81fSjAE0f:
+      metadata:
+        description: ""
+        id: U41G86c3ni0S81fSjAE0f
+        name: Coder
+      nodes:
+        '[-7jUsdlzqo7NQsDOV3s_E]:userInput "User Input"':
+          data:
+            prompt: Instructions
+            useInput: false
+          outgoingConnections:
+            - output->"Text" 8CosJcsnvIVT6eu6N0Tw2/instructions
+          visualData: 1323.7351011040582/741.0932668835674/280/20//
+        '[8CosJcsnvIVT6eu6N0Tw2]:text "Text"':
+          data:
+            text: |-
+              {{bin_files}}
+
+              {{src_files}}
+
+              I would like you to do the following:
+
+              <instructions>
+              {{instructions}}
+              </instructions>
+          outgoingConnections:
+            - output->"Assemble Prompt" orLud4ITcB9ltGrUT4p65/message1
+          visualData: 1766/292/330/13//
+        '[GbVGuALnPcAppnVdewCEb]:text "Text"':
+          data:
+            text: |-
+              <file path="{{path}}">
+              {{file}}
+              </file>
+          isSplitRun: true
+          outgoingConnections:
+            - output->"Text" QFDTmXw9NCUysON8cnhMZ/files
+          splitRunMax: 1000
+          visualData: 871/123/330/9//
+        '[QFDTmXw9NCUysON8cnhMZ]:text "Text"':
+          data:
+            text: >-
+              The following files are the files in the `src` directory of the
+              Rivet Bot project:
+
+
+              {{files}}
+          outgoingConnections:
+            - output->"Text" 8CosJcsnvIVT6eu6N0Tw2/src_files
+          visualData: 1274/129/330/11//
+        '[T5CXokWozoUIj2tInqnkE]:destructure "Destructure"':
+          data:
+            paths:
+              - $.path
+              - $.content
+          isSplitRun: true
+          outgoingConnections:
+            - match_0->"Text" _o3Q6whRH2AVZagbWhE8l/path
+            - match_1->"Text" _o3Q6whRH2AVZagbWhE8l/file
+          splitRunMax: 10000
+          visualData: 556/477/280/10//
+        '[TwU0VsB7uC0-_so4bQGcT]:chatLoop "Chat Loop"':
           data:
             additionalParameters: []
             cache: false
-            enableFunctionUse: true
+            enableFunctionUse: false
             headers: []
-            maxTokens: 1024
+            maxTokens: 8192
             modalitiesIncludeAudio: false
             modalitiesIncludeText: false
-            model: gpt-4o-mini
+            model: gpt-4o
             outputUsage: false
             parallelFunctionCalling: true
             reasoningEffort: medium
+            renderingFormat: markdown
             stop: ""
             temperature: 0.2
-            toolChoice: auto
             top_p: 1
             useAdditionalParametersInput: false
             useAsGraphPartialOutput: true
@@ -1599,50 +1964,77 @@ data:
             useTopPInput: false
             useUseTopPInput: false
             useUserInput: false
-          outgoingConnections:
-            - function-calls->"Coalesce" d0mVbF4PrtGDYaT70HrdJ/input2
-          visualData: 5604.931774841902/751.1415506599955/230/77//
-        '[v37SmR9BGDJgDPq1b8qC-]:graphInput "Graph Input"':
+            userPrompt: "Your response:"
+          visualData: 2571.5415830155057/347.60506659111894/280/24//
+        '[WvbPDxre2Up99iIJVjYOf]:text "Text"':
           data:
-            dataType: object[]
-            defaultValue: ""
-            id: messages
-            useDefaultValueInput: true
-          outgoingConnections:
-            - data->"Pop" QRNxeUUxBL_dyIVOfQZVy/array
-            - data->"Subgraph" _Eurz84lHU5ynlP_-e4rO/messages
-          visualData: 271.0310838263239/1272.956556489847/330/22//
-        '[yNvvuc19rl-I6kkvVIltc]:gptFunction "GPT Function"':
-          data:
-            description: >-
-              Reads the contents of the specified file in Rivet. This is useful
-              if questions can be answered by reading the source code of Rivet.
-              The path should be relative, and start with `packages`.
+            text: >-
+              The following files are the files in the `bin` directory of the
+              Rivet Bot project:
 
 
-              If you are in doubt, read one or more files in Rivet so that you understand Rivet better before replying to the user! Reading files is quick and easy. You can read multiple files by calling this function more than once at a time.
-            name: readRivetFile
-            schema: |-
-              
-              {
-                "type": "object",
-                "properties": {
-                  "path": {
-                    "type": "string",
-                    "description": "The file path of the file to read"
-                  }
-                },
-                "required": ["path"],
-                "additionalProperties": false
-              }
+              {{files}}
           outgoingConnections:
-            - function->"Array" poJFOQ2N1oIlq8-1C0xFN/input2
-          visualData: 2149.2372530793277/1847.8856542695976/280/64//
-        '[zp5NY2aly11KTUH9xjTW3]:graphOutput "Graph Output"':
+            - output->"Text" 8CosJcsnvIVT6eu6N0Tw2/bin_files
+          visualData: 1277/452/330/12//
+        '[Z4C8VVGATf8XKRe6DLGRD]:readAllFiles "Read All Files"':
           data:
-            dataType: string
-            id: reply
-          visualData: 8452.623566611932/-17.12486071678002/330/79//
+            asBinary: false
+            errorOnMissingFile: false
+            filterGlobs: []
+            ignores: []
+            path: /usr/local/repos/slackagent/src
+            recursive: false
+            useFilterGlobsInput: false
+            useIgnoresInput: false
+            usePathInput: false
+            useRecursiveInput: false
+          outgoingConnections:
+            - files->"Destructure" qveCI09vt5x5UGLuOiOJ0/object
+          visualData: 203/121/280/2//
+        '[_o3Q6whRH2AVZagbWhE8l]:text "Text"':
+          data:
+            text: |-
+              <file path="{{path}}">
+              {{file}}
+              </file>
+          isSplitRun: true
+          outgoingConnections:
+            - output->"Text" WvbPDxre2Up99iIJVjYOf/files
+          splitRunMax: 1000
+          visualData: 889/431/330/10//
+        '[fCXWUct2TvDhGvbOwIOEu]:readAllFiles "Read All Files"':
+          data:
+            asBinary: false
+            errorOnMissingFile: false
+            filterGlobs: []
+            ignores: []
+            path: /usr/local/repos/slackagent/bin
+            recursive: false
+            useFilterGlobsInput: false
+            useIgnoresInput: false
+            usePathInput: false
+            useRecursiveInput: false
+          outgoingConnections:
+            - files->"Destructure" T5CXokWozoUIj2tInqnkE/object
+          visualData: 209/399/280/4//
+        '[orLud4ITcB9ltGrUT4p65]:assemblePrompt "Assemble Prompt"':
+          data:
+            computeTokenCount: true
+          outgoingConnections:
+            - prompt->"Chat Loop" TwU0VsB7uC0-_so4bQGcT/prompt
+          visualData: 2187.394736532213/435.4442224479923/280/21//
+        '[qveCI09vt5x5UGLuOiOJ0]:destructure "Destructure"':
+          data:
+            paths:
+              - $.path
+              - $.content
+          isSplitRun: true
+          outgoingConnections:
+            - match_0->"Text" GbVGuALnPcAppnVdewCEb/path
+            - match_1->"Text" GbVGuALnPcAppnVdewCEb/file
+          splitRunMax: 10000
+          visualData: 538/169/280/8//
     kMImnA_JwET5paPQ7hHN4:
       metadata:
         description: ""
@@ -2060,6 +2452,44 @@ data:
           outgoingConnections:
             - content->"Graph Output" GbjVUI4R_c4MjZXgwLjlX/value
           visualData: 631/536/280/3//
+    wGYYOpcfX0z14zdkXeRgO:
+      metadata:
+        description: ""
+        id: wGYYOpcfX0z14zdkXeRgO
+        name: Rivet
+      nodes:
+        '[7_wGmpbUEF8s0Vs748Dvp]:text "Text"':
+          data:
+            text: >-
+              Rivet is a powerful Integrated Development Environment (IDE) and
+              library designed for creating AI agents using a visual,
+              graph-based interface. It is made up of two main components: the
+              Rivet Application and the Rivet Core/Rivet Node. The Rivet
+              Application is an editor that allows you to create complex AI
+              prompt chains and agents. It comes with a suite of tools for
+              designing and enhancing AI agents, such as a prompt designer,
+              variations on nodes for A/B testing, and integrated testing to
+              ensure your graphs work as expected for all inputs.
+
+
+              Rivet Core/Rivet Node, on the other hand, are TypeScript libraries that allow you to execute projects generated by the Rivet Application. They provide a simple API for integrating Rivet with your application. This makes it easy to integrate Rivet's AI capabilities into your existing projects. Once you've created a graph in the Rivet App, you can execute it within your application like a function call.
+
+
+              One of the key features of Rivet is its node-based editor. This enables you to create, configure, and debug complex AI prompt chains and AI agent chains visually. This approach makes it easier to understand the flow of data and the state of your AI agent at any point in time. The editor allows you to view the input and output of every node, as well as AI responses in real-time, making it simple to identify and fix issues.
+
+
+              Rivet also offers live debugging of AI chains as they run, allowing you to monitor the state of your AI agent in real-time and quickly identify any issues that may arise. It also supports remote debugging, allowing you to debug AI chains running on a remote server. This is useful for debugging AI agents that are running in a production environment.
+
+
+              Lastly, Rivet features a library of node types to execute common functionality for nodes. Some essential node types include Text, Chat, Match, Loop Controller, Extract YAML, Extract JSON, Chunk, Trim Chat Messages, and External Call. These nodes can be connected together using wires, allowing data to flow between them. Documentation for all nodes can be found in the Node Reference.
+          outgoingConnections:
+            - output->"Graph Output" behasq-h3y8Fqf8DV5Cdg/value
+          visualData: 227/390/330/18//
+        '[behasq-h3y8Fqf8DV5Cdg]:graphOutput "Graph Output"':
+          data:
+            dataType: string
+            id: output
+          visualData: 655/505/330/19//
   metadata:
     description: ""
     id: YRz-Gl8z4UnZ6Qe_ILR15
@@ -2068,3 +2498,7 @@ data:
     - id: anthropic
       name: Anthropic
       type: built-in
+    - id: rivet-plugin-chromadb@latest
+      package: rivet-plugin-chromadb
+      tag: latest
+      type: package

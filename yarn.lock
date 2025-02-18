@@ -623,8 +623,8 @@ __metadata:
   linkType: hard
 
 "@ironclad/rivet-core@file:/usr/local/repos/rivet/packages/core::locator=slackagent%40workspace%3A.":
-  version: 1.21.0
-  resolution: "@ironclad/rivet-core@file:/usr/local/repos/rivet/packages/core#/usr/local/repos/rivet/packages/core::hash=72a4a8&locator=slackagent%40workspace%3A."
+  version: 1.22.1
+  resolution: "@ironclad/rivet-core@file:/usr/local/repos/rivet/packages/core#/usr/local/repos/rivet/packages/core::hash=7b7f2c&locator=slackagent%40workspace%3A."
   dependencies:
     "@gentrace/core": "npm:^2.2.5"
     "@google-cloud/vertexai": "npm:^0.1.3"
@@ -653,13 +653,13 @@ __metadata:
     ts-pattern: "npm:^5.6.2"
     type-fest: "npm:^4.34.1"
     yaml: "npm:^2.3.3"
-  checksum: 10c0/d27ef62e951aba231e14e927df1220c3ee47d4b00fd40a7381b4cf80772d1f3fc8c516acda611dffdeaf29f611da28abff766678c8d09365da545439477dc01c
+  checksum: 10c0/e1c8d97f624217e7565f56d938156cc0566b6ed0d755171bde05198895cb8c1381d7bd2195647670f4af8c2d9e9db8f42e749cdcbed4d7dfa4b55293d804d3d0
   languageName: node
   linkType: hard
 
 "@ironclad/rivet-node@file:/usr/local/repos/rivet/packages/node::locator=slackagent%40workspace%3A.":
-  version: 1.21.0
-  resolution: "@ironclad/rivet-node@file:/usr/local/repos/rivet/packages/node#/usr/local/repos/rivet/packages/node::hash=d5f7f7&locator=slackagent%40workspace%3A."
+  version: 1.22.1
+  resolution: "@ironclad/rivet-node@file:/usr/local/repos/rivet/packages/node#/usr/local/repos/rivet/packages/node::hash=e26bd0&locator=slackagent%40workspace%3A."
   dependencies:
     "@ironclad/rivet-core": "workspace:^"
     emittery: "npm:^1.0.1"
@@ -671,7 +671,7 @@ __metadata:
     ts-pattern: "npm:^5.6.2"
     type-fest: "npm:^4.34.1"
     ws: "npm:^8.18.0"
-  checksum: 10c0/d5af0f14fd25220fff3b006e17df459f50aba853e582dd6b0c87917add085388f7f22ce33758ea1f8cd3904ca88d179591452349162c3cf5fd021de42faf67c1
+  checksum: 10c0/89d14e422cd92bd1c3742ccac0833dc28e1886187bcfeadd44256b1c376903627596db55bdcdc3e6fcd33cd90c043233027f3b821646b33809a2b4bfbde22fb5
   languageName: node
   linkType: hard
 

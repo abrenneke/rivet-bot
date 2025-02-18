@@ -1,6 +1,11 @@
-import { initializeDatabase } from '../src/config.js';
-import { helpfulMessageFromPastConversations } from '../src/conversation.js';
-import { fetchLast10Messages, login, replyToMessage, watchForMessages } from '../src/discord.js';
+import { CHANNELS_MAP, initializeDatabase } from '../src/config.js';
+import {
+  analyzeConversations,
+  helpfulMessageFromPastConversations,
+  processMessagesForConversations,
+} from '../src/conversation.js';
+import { fetchAllMessages, fetchLast10Messages, login, replyToMessage, watchForMessages } from '../src/discord.js';
+import { getError } from '../src/utils.js';
 
 const db = await initializeDatabase();
 
@@ -23,12 +28,24 @@ watchForMessages(async (message) => {
 
     console.dir({ result, lastMessage });
 
-    const shouldReply = (result.shouldReply && result.helpfulness >= 8) || lastMessage.content.includes(BOT_ID);
+    const shouldReply = result.shouldReply || result.helpfulness >= 7 || lastMessage.content.includes(BOT_ID);
 
     if (shouldReply) {
       await replyToMessage(lastMessage, result.reply || '(no helpful message found)');
     }
+
+    // Process the message and store it in the database
+    const allChannelMessages = await fetchAllMessages(
+      message.channelId,
+      CHANNELS_MAP[message.channelId as keyof typeof CHANNELS_MAP],
+    );
+
+    await processMessagesForConversations(db, allChannelMessages);
+    await analyzeConversations(db, message.channelId);
   } catch (err) {
-    console.error(err);
+    const error = getError(err);
+
+    console.error(error.message);
+    console.error(error.stack);
   }
 });

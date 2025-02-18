@@ -6,11 +6,11 @@ const client = new Client({
   intents: ['Guilds', 'GuildMessages', 'MessageContent'],
 });
 
-export async function login() {
+export async function login(): Promise<void> {
   await client.login(process.env['DISCORD_TOKEN']);
 }
 
-export async function logout() {
+export async function logout(): Promise<void> {
   await client.destroy();
 }
 
@@ -48,15 +48,20 @@ export async function fetchLast10Messages(channelId: string): Promise<MessageDat
   return messagesWithUser.slice(-10);
 }
 
-export async function fetchAllMessages(channelId: string): Promise<MessageData[]> {
+export async function fetchAllMessages(channelId: string, channelName: string): Promise<MessageData[]> {
+  console.log(`Fetching all messages for #${channelName}...`);
+
   // Try to load from cache first
   const cachedMessages = await loadCache(channelId);
-  if (cachedMessages) {
+  let latestTimestamp: Date | undefined;
+
+  if (cachedMessages && cachedMessages.length > 0) {
     console.log('Using cached messages');
-    return cachedMessages;
+    latestTimestamp = cachedMessages.at(-1)!.timestamp;
+  } else {
+    console.log('No cache found, fetching all messages from Discord...');
   }
 
-  console.log('Fetching messages from Discord...');
   const channel = (await client.channels.fetch(channelId)) as TextChannel;
   if (!channel) {
     throw new Error('Channel not found');
@@ -64,8 +69,9 @@ export async function fetchAllMessages(channelId: string): Promise<MessageData[]
 
   const allMessages: Collection<string, Message<true>> = new Collection();
   let lastMessageId: string | undefined = undefined;
+  let fetching = true;
 
-  while (true) {
+  while (fetching) {
     const options: FetchMessagesOptions = { limit: MESSAGES_PER_PAGE };
     if (lastMessageId) {
       options.before = lastMessageId;
@@ -74,9 +80,15 @@ export async function fetchAllMessages(channelId: string): Promise<MessageData[]
     const messages = await channel.messages.fetch(options);
     if (messages.size === 0) break;
 
-    messages.forEach((message) => allMessages.set(message.id, message));
-    lastMessageId = messages.last()?.id;
+    messages.forEach((message) => {
+      if (!latestTimestamp || message.createdAt > latestTimestamp) {
+        allMessages.set(message.id, message);
+      } else {
+        fetching = false; // Stop fetching if we reach messages that are already cached
+      }
+    });
 
+    lastMessageId = messages.last()?.id;
     console.log(`Fetched ${allMessages.size} messages so far...`);
   }
 
@@ -92,8 +104,11 @@ export async function fetchAllMessages(channelId: string): Promise<MessageData[]
     })),
   );
 
+  // Combine cached messages with newly fetched messages
+  const combinedMessages = cachedMessages ? [...cachedMessages, ...messageList] : messageList;
+
   // Sort by timestamp (oldest first)
-  const sortedMessages = messageList.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  const sortedMessages = combinedMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
   // Save to cache
   await saveCache(channelId, sortedMessages);
@@ -101,7 +116,7 @@ export async function fetchAllMessages(channelId: string): Promise<MessageData[]
   return sortedMessages;
 }
 
-export function watchForMessages(callback: (message: MessageData) => void) {
+export function watchForMessages(callback: (message: MessageData) => void): void {
   client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
@@ -117,7 +132,7 @@ export function watchForMessages(callback: (message: MessageData) => void) {
   });
 }
 
-export async function replyToMessage(message: MessageData, reply: string) {
+export async function replyToMessage(message: MessageData, reply: string): Promise<void> {
   const channel = (await client.channels.fetch(message.channelId)) as TextChannel;
   if (!channel) {
     console.error('Channel not found');

@@ -3,7 +3,6 @@ import type { Conversation, MessageData, MessageNode } from './types.js';
 import sql from 'sql-template-tag';
 import { SingleBar } from 'cli-progress';
 import {
-  isConversationEmbedded,
   isMessageProcessed,
   knnConversationEmbeddings,
   storeConversationEmbedding,
@@ -13,6 +12,8 @@ import {
 import PQueue from 'p-queue';
 import * as Rivet from '@ironclad/rivet-node';
 import { writeFile } from 'node:fs/promises';
+import { getManyDocs, knnDocsEmbeddings } from './docs.js';
+import { hashConversation } from './hashing.js';
 
 export async function processMessagesForConversations(db: Database, messages: MessageData[]): Promise<void> {
   const processingTimes: number[] = [];
@@ -154,19 +155,41 @@ export async function getConversationDetails(db: Database, conversationId: strin
     ORDER BY m.timestamp ASC
   `);
 
-  return { messages: messages.map((msg) => ({ ...msg, user: { id: msg.userId, displayName: msg.userName } })) };
+  return {
+    messages: messages.map(
+      (msg): MessageData => ({
+        ...msg,
+        user: { id: msg.userId, displayName: msg.userName },
+        timestamp: new Date(msg.timestamp),
+      }),
+    ),
+  };
 }
 
-export async function groupMessagesByConversation(db: Database): Promise<Conversation[]> {
+export async function groupMessagesByConversation(db: Database, channelId: string): Promise<Conversation[]> {
   // First, get all messages with their reply_to references
-  const messages = await db.all<MessageNode[]>(sql`
+  const rawMessages = await db.all<
+    {
+      id: string;
+      replyTo: string | null;
+      timestamp: string; // SQLite returns timestamps as strings
+    }[]
+  >(sql`
     SELECT
       id,
       reply_to as replyTo,
       datetime(timestamp) as timestamp
     FROM messages
+    WHERE channel_id = ${channelId}
     ORDER BY timestamp ASC
   `);
+
+  // Convert to MessageNode format
+  const messages: MessageNode[] = rawMessages.map((msg) => ({
+    id: msg.id,
+    replyTo: msg.replyTo,
+    timestamp: new Date(msg.timestamp),
+  }));
 
   // Create a map for quick message lookup
   const messageMap = new Map<string, MessageNode>();
@@ -241,8 +264,80 @@ export async function groupMessagesByConversation(db: Database): Promise<Convers
   return conversations.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 }
 
-export async function analyzeConversations(db: Database) {
-  const conversations = await groupMessagesByConversation(db);
+export async function processConversation(
+  db: Database,
+  conversation: Conversation,
+  options?: {
+    onError?: (error: Error) => void;
+  },
+): Promise<boolean> {
+  try {
+    // Get conversation details
+    const details = await getConversationDetails(db, conversation.id);
+
+    // Compute the hash for the conversation
+    const newHash = hashConversation(details.messages);
+
+    // Check if the conversation has changed
+    const storedHashResult = await db.get(sql`
+      SELECT hash FROM conversation_hashes WHERE conversation_id = ${conversation.id}
+    `);
+
+    const storedHash = storedHashResult ? storedHashResult.hash : null;
+
+    if (storedHash && storedHash === newHash) {
+      return false; // No changes, skip processing
+    }
+
+    if (storedHash && storedHash !== newHash) {
+      console.log(`Conversation ${conversation.id} has changed`);
+    }
+
+    // Delete any old embedding
+    await db.run(sql`
+      DELETE FROM vec_conversation_embeddings WHERE conversation_id = ${conversation.id}
+    `);
+
+    // Run the embedding graph
+    const { vector } = await Rivet.runGraphInFile('./bot.rivet-project', {
+      graph: 'Embed Conversation',
+      inputs: {
+        conversation_messages: {
+          type: 'object[]',
+          value: details.messages,
+        },
+      },
+      pluginSettings: {
+        anthropic: {
+          anthropicApiKey: process.env['ANTHROPIC_API_KEY'],
+        },
+      },
+    });
+
+    // Store the embedding
+    await storeConversationEmbedding(db, conversation.id, Rivet.coerceType(vector, 'vector'));
+
+    // Store the new hash
+    await db.run(sql`
+      INSERT OR REPLACE INTO conversation_hashes (conversation_id, hash) VALUES (
+        ${conversation.id},
+        ${newHash}
+      )
+    `);
+
+    return true;
+  } catch (error) {
+    if (options?.onError) {
+      options.onError(error as Error);
+    } else {
+      console.error(`Error processing conversation ${conversation.id}:`, error);
+    }
+    return false;
+  }
+}
+
+export async function analyzeConversations(db: Database, channelId: string): Promise<void> {
+  const conversations = await groupMessagesByConversation(db, channelId);
   console.log(`Found ${conversations.length} conversations`);
 
   const progressBar = new SingleBar({
@@ -260,41 +355,13 @@ export async function analyzeConversations(db: Database) {
   await Promise.all(
     conversations.map((conv) =>
       queue.add(async () => {
-        try {
-          // Skip if already embedded
-          if (await isConversationEmbedded(db, conv.id)) {
-            progressBar.increment();
-            processed++;
-            return;
-          }
-
-          // Get conversation details
-          const details = await getConversationDetails(db, conv.id);
-
-          // Run the embedding graph
-          const { vector } = await Rivet.runGraphInFile('./bot.rivet-project', {
-            graph: 'Embed Conversation',
-            inputs: {
-              conversation_messages: {
-                type: 'object[]',
-                value: details.messages,
-              },
-            },
-            pluginSettings: {
-              anthropic: {
-                anthropicApiKey: process.env['ANTHROPIC_API_KEY'],
-              },
-            },
-          });
-
-          // Store the embedding
-          await storeConversationEmbedding(db, conv.id, Rivet.coerceType(vector, 'vector'));
-
-          progressBar.increment();
+        const wasProcessed = await processConversation(db, conv, {
+          onError: (error) => console.error(`Error processing conversation ${conv.id}:`, error),
+        });
+        if (wasProcessed) {
           processed++;
-        } catch (error) {
-          console.error(`Error processing conversation ${conv.id}:`, error);
         }
+        progressBar.increment();
       }),
     ),
   );
@@ -305,23 +372,17 @@ export async function analyzeConversations(db: Database) {
   console.log(`Processed ${processed} conversations`);
 }
 
-export async function knnConversations(
-  db: Database,
-  messages: MessageData[],
-  k: number,
-): Promise<(ConversationDetails & { distance: number })[]> {
+export async function embedQuery(messages: MessageData[]): Promise<{
+  embedding: Float32Array;
+  rephrased: string;
+}> {
   const recorder = new Rivet.ExecutionRecorder();
-  const { run, processor } = await Rivet.createProcessor(await Rivet.loadProjectFromFile('./bot.rivet-project'), {
+  const { run, processor } = Rivet.createProcessor(await Rivet.loadProjectFromFile('./bot.rivet-project'), {
     graph: 'Embed Query',
     inputs: {
       messages: {
         type: 'object[]',
         value: messages,
-      },
-    },
-    pluginSettings: {
-      anthropic: {
-        anthropicApiKey: process.env['ANTHROPIC_API_KEY'],
       },
     },
   });
@@ -330,27 +391,36 @@ export async function knnConversations(
 
   try {
     const { output: queryEmbedding, rephrased } = await run();
-
-    console.log(`Rephrased query as "${Rivet.coerceType(rephrased, 'string')}"`);
-
-    const results = await knnConversationEmbeddings(
-      db,
-      new Float32Array(Rivet.coerceType(queryEmbedding, 'vector')),
-      k,
-    );
-
-    const conversations: (ConversationDetails & { distance: number })[] = await Promise.all(
-      results.map(async ({ conversationId, distance }) => {
-        const details = await getConversationDetails(db, conversationId);
-        return { ...details, distance };
-      }),
-    );
-
-    return conversations.filter((c) => c.messages.length > 0);
+    return {
+      embedding: new Float32Array(Rivet.coerceType(queryEmbedding, 'vector')),
+      rephrased: Rivet.coerceType(rephrased, 'string'),
+    };
   } finally {
     const recording = recorder.serialize();
     await writeFile('embed-query-recording.rivet-recording', recording);
   }
+}
+
+export async function knnConversations(
+  db: Database,
+  embedding: {
+    embedding: Float32Array;
+    rephrased: string;
+  },
+  k: number,
+): Promise<(ConversationDetails & { distance: number })[]> {
+  console.log(`Rephrased query as "${embedding.rephrased}"`);
+
+  const results = await knnConversationEmbeddings(db, embedding.embedding, k);
+
+  const conversations: (ConversationDetails & { distance: number })[] = await Promise.all(
+    results.map(async ({ conversationId, distance }) => {
+      const details = await getConversationDetails(db, conversationId);
+      return { ...details, distance };
+    }),
+  );
+
+  return conversations.filter((c) => c.messages.length > 0);
 }
 
 export async function helpfulMessageFromPastConversations(
@@ -365,10 +435,23 @@ export async function helpfulMessageFromPastConversations(
     }
   | undefined
 > {
-  const results = await knnConversations(db, lastMessages, 20);
-  if (results.length === 0) {
+  const queryEmbedding = await embedQuery(lastMessages);
+
+  const [conversationKnnResults, docsKnnResults] = await Promise.all([
+    knnConversations(db, queryEmbedding, 20),
+    knnDocsEmbeddings(db, queryEmbedding, 5),
+  ]);
+
+  if (conversationKnnResults.length === 0) {
     return undefined;
   }
+
+  console.log(`Found similar documents: ${docsKnnResults.map((r) => r.docId).join(', ')}`);
+
+  const docs = await getManyDocs(
+    db,
+    docsKnnResults.map((r) => r.docId),
+  );
 
   const recorder = new Rivet.ExecutionRecorder();
 
@@ -377,11 +460,15 @@ export async function helpfulMessageFromPastConversations(
     inputs: {
       conversations: {
         type: 'object[]',
-        value: results,
+        value: conversationKnnResults,
       },
       messages: {
         type: 'object[]',
         value: lastMessages,
+      },
+      docs: {
+        type: 'object[]',
+        value: docs,
       },
     },
     pluginSettings: {
